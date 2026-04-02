@@ -24,7 +24,7 @@ function renderMapa(){
   const mapa = document.getElementById("mapaFases");
 
   if(!mapa){
-    console.error("mapaFases não encontrado");
+    alert("ERRO: mapaFases não existe no HTML");
     return;
   }
 
@@ -37,9 +37,7 @@ function renderMapa(){
     div.innerText = i+1;
 
     if(desbloqueadas[i]){
-      div.onclick = function(){
-        iniciarFase(i);
-      }
+      div.onclick = () => iniciarFase(i);
     }
 
     mapa.appendChild(div);
