@@ -1,119 +1,130 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jogo Binário</title>
+<title>Jogo Binário Educacional</title>
 
 <style>
-body{
+body {
   margin:0;
   font-family:Arial;
-  background:#0d1b2a;
   color:#fff;
+  background: linear-gradient(180deg, #0d1b2a, #1b263b);
 }
 
 /* TELAS */
-#mapaTela,#jogoTela{display:none;}
-.active{display:block;}
+#mapaTela, #jogoTela { display:none; }
+.active { display:block; }
 
 /* MAPA */
-.mapa{
+.mapa {
   height:100vh;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
 }
-.fases{display:flex;gap:20px;}
-.fase{
-  width:60px;height:60px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+.fases {
+  display:flex;
+  gap:20px;
 }
-.liberada{background:#00c853;cursor:pointer;}
-.bloqueada{background:#777;}
+.fase {
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+}
+.liberada { background:#00c853; cursor:pointer; }
+.bloqueada { background:#777; }
 
 /* JOGO */
-.container{display:flex;height:60vh;}
-.left,.right{width:50%;padding:10px;}
+.container {
+  display:flex;
+  height:65vh;
+}
+.left {
+  width:50%;
+  overflow:auto;
+}
+.right {
+  width:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-.binary{
-  font-family:monospace;
+.binary {
+  font-family: monospace;
   letter-spacing:3px;
 }
 
-.grid{
+.grid {
   display:grid;
   gap:2px;
+  padding:10px;
+  background:#222;
+  border-radius:10px;
 }
-.cell{
-  width:30px;height:30px;background:#eee;cursor:pointer;
+
+.cell {
+  width:30px;
+  height:30px;
+  background:#eee;
+  cursor:pointer;
 }
-.cell.active{background:black;}
-.cell.correct{background:#00e676;}
-.cell.wrong{background:#ff1744;}
+.cell.active { background:black; }
+.cell.correct { background:#00e676; }
+.cell.wrong { background:#ff1744; }
+
+/* AVATAR */
+#avatar {
+  position:absolute;
+  bottom:20px;
+  left:10px;
+  width:50px;
+}
 
 /* RESPONSIVO */
 @media(max-width:768px){
-  .container{flex-direction:column;}
-  .left,.right{width:100%;}
-  .cell{width:20px;height:20px;}
+  .container { flex-direction:column; }
+  .left,.right { width:100%; height:50%; }
+  .cell { width:20px;height:20px; }
 }
 </style>
-</head>
 
-<body>
+<script defer>
 
-<!-- MAPA -->
-<div id="mapaTela" class="active mapa">
-  <h1>🗺️ Escolha a fase</h1>
-  <div id="mapaFases" class="fases"></div>
-</div>
+/* INICIALIZAÇÃO SEGURA */
+document.addEventListener("DOMContentLoaded", ()=>{
 
-<!-- JOGO -->
-<div id="jogoTela">
-  <button onclick="voltarMapa()">⬅ Voltar</button>
-  <h2>🧠 Desafio</h2>
+let faseAtual = 0;
+let score = 0;
 
-  <div class="container">
-    <div id="binary" class="left"></div>
-    <div class="right">
-      <div id="grid" class="grid"></div>
-    </div>
-  </div>
-
-  <button onclick="validar()">✔ Validar</button>
-  <button onclick="limpar()">🧹 Limpar</button>
-
-  <h3>Pontos: <span id="score">0</span></h3>
-</div>
-
-<script>
-
-let faseAtual=0;
-let score=0;
-
-/* FASES */
-const fases=[
+const fases = [
  ["00000","00100","01110","00100","00000"],
  ["00000","01110","11111","01110","00000"],
  ["00100","01110","11111","01110","00100"]
 ];
 
-let desbloqueadas=[true,false,false];
+let desbloqueadas = [true,false,false];
+let imagemAtual = [];
 
 /* MAPA */
 function renderMapa(){
-  const mapa=document.getElementById("mapaFases");
+  const mapa = document.getElementById("mapaFases");
   mapa.innerHTML="";
 
   fases.forEach((f,i)=>{
-    const div=document.createElement("div");
-    div.className="fase "+(desbloqueadas[i]?"liberada":"bloqueada");
-    div.textContent=i+1;
+    const div = document.createElement("div");
+    div.className = "fase " + (desbloqueadas[i] ? "liberada":"bloqueada");
+    div.textContent = i+1;
 
     if(desbloqueadas[i]){
-      div.onclick=()=>iniciarFase(i);
+      div.onclick = ()=> iniciarFase(i);
     }
 
     mapa.appendChild(div);
@@ -121,7 +132,7 @@ function renderMapa(){
 }
 
 function iniciarFase(i){
-  faseAtual=i;
+  faseAtual = i;
   document.getElementById("mapaTela").classList.remove("active");
   document.getElementById("jogoTela").classList.add("active");
   carregarFase();
@@ -130,61 +141,61 @@ function iniciarFase(i){
 function voltarMapa(){
   document.getElementById("jogoTela").classList.remove("active");
   document.getElementById("mapaTela").classList.add("active");
+  renderMapa();
 }
 
 /* JOGO */
-let imagemAtual=[];
-
 function carregarFase(){
-  imagemAtual=fases[faseAtual];
+  imagemAtual = fases[faseAtual];
   render();
 }
 
 function render(){
-  const grid=document.getElementById("grid");
-  const binary=document.getElementById("binary");
+  const grid = document.getElementById("grid");
+  const binary = document.getElementById("binary");
 
   grid.innerHTML="";
   binary.innerHTML="";
 
-  grid.style.gridTemplateColumns=`repeat(${imagemAtual[0].length},1fr)`;
+  grid.style.gridTemplateColumns = `repeat(${imagemAtual[0].length},1fr)`;
 
   imagemAtual.forEach(linha=>{
-
-    const row=document.createElement("div");
+    const row = document.createElement("div");
     row.className="binary";
-    row.textContent=linha.split("").join(" ");
+    row.textContent = linha.split("").join(" ");
     binary.appendChild(row);
 
     [...linha].forEach(bit=>{
-      const cell=document.createElement("div");
+      const cell = document.createElement("div");
       cell.className="cell";
 
       cell.onclick=()=>{
         cell.classList.toggle("active");
 
-        const ativo=cell.classList.contains("active");
+        const ativo = cell.classList.contains("active");
 
         cell.classList.remove("correct","wrong");
 
-        if(ativo && bit==="1") cell.classList.add("correct");
-        else if(ativo && bit==="0") cell.classList.add("wrong");
+        if(ativo && bit==="1"){
+          cell.classList.add("correct");
+        } else if(ativo && bit==="0"){
+          cell.classList.add("wrong");
+        }
       };
 
       grid.appendChild(cell);
     });
-
   });
 }
 
 /* VALIDAR */
 function validar(){
-  const cells=document.querySelectorAll(".cell");
+  const cells = document.querySelectorAll(".cell");
   let i=0, correto=true;
 
   imagemAtual.forEach(linha=>{
     [...linha].forEach(bit=>{
-      const ativo=cells[i].classList.contains("active");
+      const ativo = cells[i].classList.contains("active");
 
       if((bit==="1" && !ativo)||(bit==="0" && ativo)){
         correto=false;
@@ -198,14 +209,29 @@ function validar(){
     score+=10;
     document.getElementById("score").textContent=score;
 
-    /* CORREÇÃO AQUI */
     if(faseAtual+1 < desbloqueadas.length){
       desbloqueadas[faseAtual+1]=true;
     }
 
+    animarAvatar();
   } else {
     alert("❌ Tente novamente");
   }
+}
+
+/* AVATAR */
+function animarAvatar(){
+  const avatar = document.getElementById("avatar");
+  let pos = 10;
+
+  const intervalo = setInterval(()=>{
+    pos += 10;
+    avatar.style.left = pos+"px";
+
+    if(pos > 300){
+      clearInterval(intervalo);
+    }
+  },50);
 }
 
 /* LIMPAR */
@@ -215,12 +241,50 @@ function limpar(){
   });
 }
 
-/* INICIAR COM SEGURANÇA */
-window.onload = ()=>{
-  renderMapa();
-};
+/* EXPOR FUNÇÕES */
+window.validar = validar;
+window.limpar = limpar;
+window.voltarMapa = voltarMapa;
+
+/* START */
+renderMapa();
+
+});
 
 </script>
+
+</head>
+
+<body>
+
+<!-- MAPA -->
+<div id="mapaTela" class="active mapa">
+  <h1>🗺️ Escolha a Fase</h1>
+  <div class="fases" id="mapaFases"></div>
+</div>
+
+<!-- JOGO -->
+<div id="jogoTela">
+  <button onclick="voltarMapa()">⬅ Voltar</button>
+
+  <h2>🧠 Desafio Binário</h2>
+
+  <div class="container">
+    <div id="binary" class="left"></div>
+    <div class="right">
+      <div id="grid" class="grid"></div>
+    </div>
+  </div>
+
+  <br>
+  <button onclick="validar()">✔ Validar</button>
+  <button onclick="limpar()">🧹 Limpar</button>
+
+  <h3>🏆 Pontuação: <span id="score">0</span></h3>
+</div>
+
+<!-- AVATAR LOCAL -->
+<img id="avatar" src="avatar.png">
 
 </body>
 </html>
