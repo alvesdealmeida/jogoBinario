@@ -1,110 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Teste Jogo</title>
+
+<style>
+body{background:#0d1b2a;color:#fff;font-family:Arial;text-align:center;}
+.fases{display:flex;justify-content:center;gap:20px;margin-top:50px;}
+.fase{width:60px;height:60px;border-radius:50%;background:green;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+</style>
+
+</head>
+
+<body>
+
+<h1>🗺️ Fases</h1>
+
+<div id="mapaFases" class="fases"></div>
+
 <script>
 
-let faseAtual = 0;
-let score = 0;
+document.addEventListener("DOMContentLoaded", function(){
 
-const fases = [
- ["00000","00100","01110","00100","00000"],
- ["00000","01110","11111","01110","00000"]
-];
+  console.log("HTML carregado");
 
-let desbloqueadas = [true,false];
-let imagemAtual = [];
-
-/* GARANTE QUE RODA DEPOIS DO HTML */
-document.addEventListener("DOMContentLoaded", iniciar);
-
-function iniciar(){
-  console.log("Jogo iniciado");
-  renderMapa();
-}
-
-/* MAPA */
-function renderMapa(){
   const mapa = document.getElementById("mapaFases");
 
   if(!mapa){
-    alert("ERRO: mapaFases não existe no HTML");
+    alert("AINDA NÃO FUNCIONOU → HTML errado");
     return;
   }
 
-  mapa.innerHTML="";
+  console.log("mapa encontrado!");
 
-  for(let i=0;i<fases.length;i++){
+  for(let i=1;i<=3;i++){
     const div = document.createElement("div");
-
-    div.className = "fase " + (desbloqueadas[i] ? "liberada":"bloqueada");
-    div.innerText = i+1;
-
-    if(desbloqueadas[i]){
-      div.onclick = () => iniciarFase(i);
-    }
-
+    div.className="fase";
+    div.innerText=i;
     mapa.appendChild(div);
   }
-}
 
-/* INICIAR FASE */
-function iniciarFase(i){
-  faseAtual = i;
-
-  document.getElementById("mapaTela").style.display="none";
-  document.getElementById("jogoTela").style.display="block";
-
-  carregarFase();
-}
-
-/* CARREGAR */
-function carregarFase(){
-  imagemAtual = fases[faseAtual];
-  render();
-}
-
-/* RENDER */
-function render(){
-  const grid = document.getElementById("grid");
-  const binary = document.getElementById("binary");
-
-  grid.innerHTML="";
-  binary.innerHTML="";
-
-  grid.style.gridTemplateColumns = "repeat(5,1fr)";
-
-  for(let linha of imagemAtual){
-
-    const row = document.createElement("div");
-    row.innerText = linha.split("").join(" ");
-    binary.appendChild(row);
-
-    for(let bit of linha){
-      const cell = document.createElement("div");
-      cell.className="cell";
-
-      cell.onclick = function(){
-        this.classList.toggle("active");
-      }
-
-      grid.appendChild(cell);
-    }
-  }
-}
-
-/* VALIDAR */
-function validar(){
-  alert("Funcionando!");
-}
-
-/* LIMPAR */
-function limpar(){
-  document.querySelectorAll(".cell").forEach(c=>{
-    c.classList.remove("active");
-  });
-}
-
-/* VOLTAR */
-function voltarMapa(){
-  document.getElementById("jogoTela").style.display="none";
-  document.getElementById("mapaTela").style.display="flex";
-}
+});
 
 </script>
+
+</body>
+</html>
