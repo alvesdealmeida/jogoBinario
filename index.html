@@ -1,137 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jogo Binário</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0d1b2a;
-  color:#fff;
-}
-
-#mapaTela, #jogoTela{ display:none; }
-.active{ display:block; }
-
-.mapa{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-
-.fases{
-  display:flex;
-  gap:20px;
-}
-
-.fase{
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.liberada{ background:green; cursor:pointer; }
-.bloqueada{ background:gray; }
-
-.container{
-  display:flex;
-  height:60vh;
-}
-
-.left{
-  width:50%;
-  padding:10px;
-}
-
-.right{
-  width:50%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.binary{
-  font-family:monospace;
-  letter-spacing:4px;
-  margin-bottom:5px;
-}
-
-.grid{
-  display:grid;
-  gap:3px;
-  background:#222;
-  padding:10px;
-  border-radius:10px;
-}
-
-.cell{
-  width:30px;
-  height:30px;
-  background:#eee;
-  cursor:pointer;
-}
-
-.cell.active{ background:black; }
-.cell.correct{ background:#00e676; }
-.cell.wrong{ background:#ff1744; }
-
-#avatar{
-  position:absolute;
-  bottom:10px;
-  left:10px;
-  width:50px;
-}
-
-/* RESPONSIVO */
-@media(max-width:768px){
-  .container{ flex-direction:column; }
-  .left,.right{ width:100%; }
-  .cell{ width:22px;height:22px; }
-}
-</style>
-</head>
-
-<body>
-
-<!-- MAPA -->
-<div id="mapaTela" class="active mapa">
-  <h1>🗺️ Fases</h1>
-  <div id="mapaFases" class="fases"></div>
-</div>
-
-<!-- JOGO -->
-<div id="jogoTela">
-  <button onclick="voltarMapa()">⬅ Voltar</button>
-  <h2>Desafio Binário</h2>
-
-  <div class="container">
-    <div id="binary" class="left"></div>
-    <div class="right">
-      <div id="grid" class="grid"></div>
-    </div>
-  </div>
-
-  <button onclick="validar()">✔ Validar</button>
-  <button onclick="limpar()">🧹 Limpar</button>
-
-  <h3>Pontos: <span id="score">0</span></h3>
-</div>
-
-<img id="avatar" src="avatar.png" onerror="this.style.display='none'">
-
 <script>
-/* PROTEÇÃO TOTAL */
-window.onload = function(){
-
-try{
 
 let faseAtual = 0;
 let score = 0;
@@ -144,10 +11,22 @@ const fases = [
 let desbloqueadas = [true,false];
 let imagemAtual = [];
 
+/* GARANTE QUE RODA DEPOIS DO HTML */
+document.addEventListener("DOMContentLoaded", iniciar);
+
+function iniciar(){
+  console.log("Jogo iniciado");
+  renderMapa();
+}
+
 /* MAPA */
 function renderMapa(){
   const mapa = document.getElementById("mapaFases");
-  if(!mapa) return;
+
+  if(!mapa){
+    console.error("mapaFases não encontrado");
+    return;
+  }
 
   mapa.innerHTML="";
 
@@ -155,22 +34,24 @@ function renderMapa(){
     const div = document.createElement("div");
 
     div.className = "fase " + (desbloqueadas[i] ? "liberada":"bloqueada");
-    div.textContent = i+1;
+    div.innerText = i+1;
 
     if(desbloqueadas[i]){
-      div.onclick = function(){ iniciarFase(i); }
+      div.onclick = function(){
+        iniciarFase(i);
+      }
     }
 
     mapa.appendChild(div);
   }
 }
 
-/* INICIAR */
+/* INICIAR FASE */
 function iniciarFase(i){
   faseAtual = i;
 
-  document.getElementById("mapaTela").classList.remove("active");
-  document.getElementById("jogoTela").classList.add("active");
+  document.getElementById("mapaTela").style.display="none";
+  document.getElementById("jogoTela").style.display="block";
 
   carregarFase();
 }
@@ -186,8 +67,6 @@ function render(){
   const grid = document.getElementById("grid");
   const binary = document.getElementById("binary");
 
-  if(!grid || !binary) return;
-
   grid.innerHTML="";
   binary.innerHTML="";
 
@@ -196,8 +75,7 @@ function render(){
   for(let linha of imagemAtual){
 
     const row = document.createElement("div");
-    row.className="binary";
-    row.textContent = linha.split("").join(" ");
+    row.innerText = linha.split("").join(" ");
     binary.appendChild(row);
 
     for(let bit of linha){
@@ -206,17 +84,7 @@ function render(){
 
       cell.onclick = function(){
         this.classList.toggle("active");
-
-        const ativo = this.classList.contains("active");
-
-        this.classList.remove("correct","wrong");
-
-        if(ativo && bit==="1"){
-          this.classList.add("correct");
-        } else if(ativo && bit==="0"){
-          this.classList.add("wrong");
-        }
-      };
+      }
 
       grid.appendChild(cell);
     }
@@ -224,80 +92,21 @@ function render(){
 }
 
 /* VALIDAR */
-window.validar = function(){
-  const cells = document.querySelectorAll(".cell");
-
-  let i=0;
-  let correto=true;
-
-  for(let linha of imagemAtual){
-    for(let bit of linha){
-
-      const ativo = cells[i].classList.contains("active");
-
-      if((bit==="1" && !ativo)||(bit==="0" && ativo)){
-        correto=false;
-      }
-      i++;
-    }
-  }
-
-  if(correto){
-    alert("Acertou!");
-    score+=10;
-    document.getElementById("score").textContent=score;
-
-    if(faseAtual+1 < desbloqueadas.length){
-      desbloqueadas[faseAtual+1]=true;
-    }
-
-    animarAvatar();
-  }else{
-    alert("Tente novamente!");
-  }
+function validar(){
+  alert("Funcionando!");
 }
 
 /* LIMPAR */
-window.limpar = function(){
+function limpar(){
   document.querySelectorAll(".cell").forEach(c=>{
-    c.classList.remove("active","correct","wrong");
+    c.classList.remove("active");
   });
 }
 
 /* VOLTAR */
-window.voltarMapa = function(){
-  document.getElementById("jogoTela").classList.remove("active");
-  document.getElementById("mapaTela").classList.add("active");
-  renderMapa();
+function voltarMapa(){
+  document.getElementById("jogoTela").style.display="none";
+  document.getElementById("mapaTela").style.display="flex";
 }
 
-/* AVATAR */
-function animarAvatar(){
-  const avatar = document.getElementById("avatar");
-  if(!avatar) return;
-
-  let pos=10;
-
-  const loop = setInterval(()=>{
-    pos+=5;
-    avatar.style.left = pos+"px";
-
-    if(pos>300){
-      clearInterval(loop);
-    }
-  },30);
-}
-
-/* START */
-renderMapa();
-
-}catch(e){
-  console.error("Erro detectado:", e);
-  document.body.innerHTML = "<h1 style='color:red;text-align:center'>Erro no jogo. Verifique o console (F12)</h1>";
-}
-
-}
 </script>
-
-</body>
-</html>
