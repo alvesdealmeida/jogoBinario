@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo Binário</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0d1b2a;
+  color:#fff;
+}
+
+/* TELAS */
+#mapaTela,#jogoTela{display:none;}
+.active{display:block;}
+
+/* MAPA */
+.mapa{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.fases{display:flex;gap:20px;}
+.fase{
+  width:60px;height:60px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.liberada{background:#00c853;cursor:pointer;}
+.bloqueada{background:#777;}
+
+/* JOGO */
+.container{display:flex;height:60vh;}
+.left,.right{width:50%;padding:10px;}
+
+.binary{
+  font-family:monospace;
+  letter-spacing:3px;
+}
+
+.grid{
+  display:grid;
+  gap:2px;
+}
+.cell{
+  width:30px;height:30px;background:#eee;cursor:pointer;
+}
+.cell.active{background:black;}
+.cell.correct{background:#00e676;}
+.cell.wrong{background:#ff1744;}
+
+/* RESPONSIVO */
+@media(max-width:768px){
+  .container{flex-direction:column;}
+  .left,.right{width:100%;}
+  .cell{width:20px;height:20px;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- MAPA -->
+<div id="mapaTela" class="active mapa">
+  <h1>🗺️ Escolha a fase</h1>
+  <div id="mapaFases" class="fases"></div>
+</div>
+
+<!-- JOGO -->
+<div id="jogoTela">
+  <button onclick="voltarMapa()">⬅ Voltar</button>
+  <h2>🧠 Desafio</h2>
+
+  <div class="container">
+    <div id="binary" class="left"></div>
+    <div class="right">
+      <div id="grid" class="grid"></div>
+    </div>
+  </div>
+
+  <button onclick="validar()">✔ Validar</button>
+  <button onclick="limpar()">🧹 Limpar</button>
+
+  <h3>Pontos: <span id="score">0</span></h3>
+</div>
+
+<script>
+
+let faseAtual=0;
+let score=0;
+
+/* FASES */
+const fases=[
+ ["00000","00100","01110","00100","00000"],
+ ["00000","01110","11111","01110","00000"],
+ ["00100","01110","11111","01110","00100"]
+];
+
+let desbloqueadas=[true,false,false];
+
+/* MAPA */
+function renderMapa(){
+  const mapa=document.getElementById("mapaFases");
+  mapa.innerHTML="";
+
+  fases.forEach((f,i)=>{
+    const div=document.createElement("div");
+    div.className="fase "+(desbloqueadas[i]?"liberada":"bloqueada");
+    div.textContent=i+1;
+
+    if(desbloqueadas[i]){
+      div.onclick=()=>iniciarFase(i);
+    }
+
+    mapa.appendChild(div);
+  });
+}
+
+function iniciarFase(i){
+  faseAtual=i;
+  document.getElementById("mapaTela").classList.remove("active");
+  document.getElementById("jogoTela").classList.add("active");
+  carregarFase();
+}
+
+function voltarMapa(){
+  document.getElementById("jogoTela").classList.remove("active");
+  document.getElementById("mapaTela").classList.add("active");
+}
+
+/* JOGO */
+let imagemAtual=[];
+
+function carregarFase(){
+  imagemAtual=fases[faseAtual];
+  render();
+}
+
+function render(){
+  const grid=document.getElementById("grid");
+  const binary=document.getElementById("binary");
+
+  grid.innerHTML="";
+  binary.innerHTML="";
+
+  grid.style.gridTemplateColumns=`repeat(${imagemAtual[0].length},1fr)`;
+
+  imagemAtual.forEach(linha=>{
+
+    const row=document.createElement("div");
+    row.className="binary";
+    row.textContent=linha.split("").join(" ");
+    binary.appendChild(row);
+
+    [...linha].forEach(bit=>{
+      const cell=document.createElement("div");
+      cell.className="cell";
+
+      cell.onclick=()=>{
+        cell.classList.toggle("active");
+
+        const ativo=cell.classList.contains("active");
+
+        cell.classList.remove("correct","wrong");
+
+        if(ativo && bit==="1") cell.classList.add("correct");
+        else if(ativo && bit==="0") cell.classList.add("wrong");
+      };
+
+      grid.appendChild(cell);
+    });
+
+  });
+}
+
+/* VALIDAR */
+function validar(){
+  const cells=document.querySelectorAll(".cell");
+  let i=0, correto=true;
+
+  imagemAtual.forEach(linha=>{
+    [...linha].forEach(bit=>{
+      const ativo=cells[i].classList.contains("active");
+
+      if((bit==="1" && !ativo)||(bit==="0" && ativo)){
+        correto=false;
+      }
+      i++;
+    });
+  });
+
+  if(correto){
+    alert("🎉 Acertou!");
+    score+=10;
+    document.getElementById("score").textContent=score;
+
+    /* CORREÇÃO AQUI */
+    if(faseAtual+1 < desbloqueadas.length){
+      desbloqueadas[faseAtual+1]=true;
+    }
+
+  } else {
+    alert("❌ Tente novamente");
+  }
+}
+
+/* LIMPAR */
+function limpar(){
+  document.querySelectorAll(".cell").forEach(c=>{
+    c.classList.remove("active","correct","wrong");
+  });
+}
+
+/* INICIAR COM SEGURANÇA */
+window.onload = ()=>{
+  renderMapa();
+};
+
+</script>
+
+</body>
+</html>
