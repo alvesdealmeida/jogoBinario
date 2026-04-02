@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -13,11 +13,9 @@ body{
   color:#fff;
 }
 
-/* TELAS */
 #mapaTela, #jogoTela{ display:none; }
 .active{ display:block; }
 
-/* MAPA */
 .mapa{
   height:100vh;
   display:flex;
@@ -44,17 +42,12 @@ body{
 .liberada{ background:#00c853; cursor:pointer; }
 .bloqueada{ background:#777; }
 
-/* JOGO */
 .container{
   display:flex;
   height:65vh;
 }
 
-.left{
-  width:50%;
-  padding:10px;
-}
-
+.left{ width:50%; padding:10px; }
 .right{
   width:50%;
   display:flex;
@@ -87,7 +80,6 @@ body{
 .cell.correct{ background:#00e676; }
 .cell.wrong{ background:#ff1744; }
 
-/* AVATAR */
 #avatar{
   position:absolute;
   bottom:10px;
@@ -95,7 +87,6 @@ body{
   width:50px;
 }
 
-/* RESPONSIVO */
 @media(max-width:768px){
   .container{ flex-direction:column; }
   .left,.right{ width:100%; }
@@ -106,13 +97,11 @@ body{
 
 <body>
 
-<!-- MAPA -->
 <div id="mapaTela" class="active mapa">
   <h1>🗺️ Escolha a Fase</h1>
   <div id="mapaFases" class="fases"></div>
 </div>
 
-<!-- JOGO -->
 <div id="jogoTela">
   <button onclick="voltarMapa()">⬅ Voltar</button>
   <h2>🧠 Desafio Binário</h2>
@@ -131,14 +120,10 @@ body{
   <h3>🏆 Pontuação: <span id="score">0</span></h3>
 </div>
 
-<!-- AVATAR -->
 <img id="avatar" src="avatar.png" onerror="this.style.display='none'">
 
-<!-- SCRIPT NO FINAL (CORREÇÃO PRINCIPAL) -->
 <script>
-
-/* INÍCIO SEGURO */
-document.addEventListener("DOMContentLoaded", function(){
+window.onload = function(){
 
 let faseAtual = 0;
 let score = 0;
@@ -157,7 +142,7 @@ function renderMapa(){
   const mapa = document.getElementById("mapaFases");
 
   if(!mapa){
-    console.error("ERRO: mapaFases não existe");
+    alert("Erro: mapa não encontrado");
     return;
   }
 
@@ -179,13 +164,11 @@ function renderMapa(){
   }
 }
 
-/* INICIAR FASE */
+/* INICIAR */
 function iniciarFase(i){
   faseAtual = i;
-
   document.getElementById("mapaTela").classList.remove("active");
   document.getElementById("jogoTela").classList.add("active");
-
   carregarFase();
 }
 
@@ -218,16 +201,6 @@ function render(){
 
       cell.onclick = function(){
         this.classList.toggle("active");
-
-        const ativo = this.classList.contains("active");
-
-        this.classList.remove("correct","wrong");
-
-        if(ativo && bit==="1"){
-          this.classList.add("correct");
-        } else if(ativo && bit==="0"){
-          this.classList.add("wrong");
-        }
       };
 
       grid.appendChild(cell);
@@ -263,8 +236,6 @@ window.validar = function(){
       desbloqueadas[faseAtual+1]=true;
     }
 
-    animarAvatar();
-
   }else{
     alert("❌ Tente novamente");
   }
@@ -273,7 +244,7 @@ window.validar = function(){
 /* LIMPAR */
 window.limpar = function(){
   document.querySelectorAll(".cell").forEach(c=>{
-    c.classList.remove("active","correct","wrong");
+    c.classList.remove("active");
   });
 }
 
@@ -284,26 +255,10 @@ window.voltarMapa = function(){
   renderMapa();
 }
 
-/* AVATAR */
-function animarAvatar(){
-  const avatar = document.getElementById("avatar");
-  let pos = 10;
-
-  const loop = setInterval(()=>{
-    pos += 5;
-    avatar.style.left = pos+"px";
-
-    if(pos > 300){
-      clearInterval(loop);
-    }
-  },30);
-}
-
 /* START */
 renderMapa();
 
-});
-
+};
 </script>
 
 </body>
