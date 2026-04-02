@@ -3,262 +3,324 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jogo Binário</title>
+<title>Painel Binário Educacional</title>
 
 <style>
-body{
+body {
   margin:0;
   font-family:Arial;
-  background: linear-gradient(180deg,#0d1b2a,#1b263b);
+  background:#111;
   color:#fff;
 }
 
-#mapaTela, #jogoTela{ display:none; }
-.active{ display:block; }
-
-.mapa{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+/* TÍTULO */
+h1 {
+  text-align:center;
+  margin:10px;
 }
 
-.fases{
-  display:flex;
-  gap:20px;
+/* CONTROLES */
+.controls {
+  text-align:center;
+  margin-bottom:10px;
 }
 
-.fase{
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
+button {
+  padding:8px;
+  margin:5px;
+  border:none;
+  border-radius:5px;
+  background:#00c853;
+  color:white;
+  cursor:pointer;
 }
 
-.liberada{ background:#00c853; cursor:pointer; }
-.bloqueada{ background:#777; }
-
-.container{
+/* LAYOUT DIVIDIDO */
+.container {
   display:flex;
-  height:65vh;
+  height:calc(100vh - 140px);
 }
 
-.left{ width:50%; padding:10px; }
-.right{
+/* LADO ESQUERDO (BINÁRIO) */
+.left {
+  width:50%;
+  overflow:auto;
+  padding:10px;
+  background:#1a1a1a;
+}
+
+.binary {
+  font-family:monospace;
+  font-size:14px;
+  line-height:16px;
+}
+
+/* LADO DIREITO (PIXEL) */
+.right {
   width:50%;
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-.binary{
-  font-family:monospace;
-  letter-spacing:3px;
-  margin-bottom:5px;
-}
-
-.grid{
+/* GRID */
+.grid {
   display:grid;
-  gap:2px;
-  background:#222;
-  padding:10px;
-  border-radius:10px;
+  gap:1px;
+  background:#444;
 }
 
-.cell{
-  width:30px;
-  height:30px;
-  background:#eee;
+.cell {
+  width:16px;
+  height:16px;
+  background:white;
   cursor:pointer;
 }
 
-.cell.active{ background:black; }
-.cell.correct{ background:#00e676; }
-.cell.wrong{ background:#ff1744; }
-
-#avatar{
-  position:absolute;
-  bottom:10px;
-  left:10px;
-  width:50px;
+.cell.active {
+  background:black;
 }
 
+/* RODAPÉ */
+.footer {
+  text-align:center;
+}
+
+/* RESPONSIVO */
 @media(max-width:768px){
-  .container{ flex-direction:column; }
-  .left,.right{ width:100%; }
-  .cell{ width:22px;height:22px; }
+  .container {
+    flex-direction:column;
+  }
+
+  .left, .right {
+    width:100%;
+    height:50%;
+  }
+
+  .cell {
+    width:12px;
+    height:12px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div id="mapaTela" class="active mapa">
-  <h1>🗺️ Escolha a Fase</h1>
-  <div id="mapaFases" class="fases"></div>
-</div>
+<h1>🧠 Painel Binário Educacional</h1>
 
-<div id="jogoTela">
-  <button onclick="voltarMapa()">⬅ Voltar</button>
-  <h2>🧠 Desafio Binário</h2>
-
-  <div class="container">
-    <div id="binary" class="left"></div>
-    <div class="right">
-      <div id="grid" class="grid"></div>
-    </div>
-  </div>
+<div class="controls">
+  Série:
+  <button onclick="setSerie('3')">3º Ano</button>
+  <button onclick="setSerie('4')">4º Ano</button>
+  <button onclick="setSerie('5')">5º Ano</button>
 
   <br>
+
   <button onclick="validar()">✔ Validar</button>
   <button onclick="limpar()">🧹 Limpar</button>
 
-  <h3>🏆 Pontuação: <span id="score">0</span></h3>
+  <br>
+
+  📷 Upload: <input type="file" onchange="uploadImagem(event)">
 </div>
 
-<img id="avatar" src="avatar.png" onerror="this.style.display='none'">
+<div class="container">
+
+  <!-- BINÁRIO -->
+  <div class="left" id="binary"></div>
+
+  <!-- PAINEL -->
+  <div class="right">
+    <div id="grid" class="grid"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <h3>🏆 Pontuação: <span id="score">0</span></h3>
+  <h3>🥇 Ranking</h3>
+  <ul id="ranking"></ul>
+</div>
 
 <script>
-window.onload = function(){
 
-let faseAtual = 0;
-let score = 0;
-
-const fases = [
- ["00000","00100","01110","00100","00000"],
- ["00000","01110","11111","01110","00000"],
- ["00100","01110","11111","01110","00100"]
-];
-
-let desbloqueadas = [true,false,false];
 let imagemAtual = [];
+let score = 0;
+let serie = "3";
 
-/* MAPA */
-function renderMapa(){
-  const mapa = document.getElementById("mapaFases");
+/* FASES POR SÉRIE */
+const fases = {
+  "3": [
+    [
+      "00000",
+      "00100",
+      "01110",
+      "00100",
+      "00000"
+    ]
+  ],
+  "4": [
+    [
+      "0000000000",
+      "0011111100",
+      "0111111110",
+      "0011111100",
+      "0000000000"
+    ]
+  ],
+  "5": [
+    [
+      "000000000000",
+      "001111111100",
+      "011111111110",
+      "001111111100",
+      "000000000000"
+    ]
+  ]
+};
 
-  if(!mapa){
-    alert("Erro: mapa não encontrado");
-    return;
-  }
-
-  mapa.innerHTML="";
-
-  for(let i=0;i<fases.length;i++){
-    const div = document.createElement("div");
-
-    div.className = "fase " + (desbloqueadas[i] ? "liberada":"bloqueada");
-    div.innerText = i+1;
-
-    if(desbloqueadas[i]){
-      div.onclick = function(){
-        iniciarFase(i);
-      }
-    }
-
-    mapa.appendChild(div);
-  }
-}
-
-/* INICIAR */
-function iniciarFase(i){
-  faseAtual = i;
-  document.getElementById("mapaTela").classList.remove("active");
-  document.getElementById("jogoTela").classList.add("active");
+/* TROCAR SÉRIE */
+function setSerie(s){
+  serie = s;
   carregarFase();
 }
 
-/* CARREGAR */
+/* CARREGAR FASE */
 function carregarFase(){
-  imagemAtual = fases[faseAtual];
+  imagemAtual = fases[serie][0];
   render();
 }
 
-/* RENDER */
+/* RENDERIZAÇÃO */
 function render(){
   const grid = document.getElementById("grid");
   const binary = document.getElementById("binary");
 
-  grid.innerHTML="";
-  binary.innerHTML="";
+  grid.innerHTML = "";
+  binary.innerHTML = "";
 
-  grid.style.gridTemplateColumns = "repeat(5,1fr)";
+  let tamanho = imagemAtual[0].length;
+  grid.style.gridTemplateColumns = `repeat(${tamanho}, 1fr)`;
 
-  for(let linha of imagemAtual){
+  imagemAtual.forEach(linha => {
 
+    /* BINÁRIO */
     const row = document.createElement("div");
-    row.className="binary";
-    row.innerText = linha.split("").join(" ");
+    row.className = "binary";
+    row.textContent = linha;
     binary.appendChild(row);
 
-    for(let bit of linha){
+    /* GRID */
+    [...linha].forEach(bit => {
       const cell = document.createElement("div");
-      cell.className="cell";
+      cell.className = "cell";
 
-      cell.onclick = function(){
-        this.classList.toggle("active");
-      };
+      cell.onclick = () => cell.classList.toggle("active");
 
       grid.appendChild(cell);
-    }
-  }
-}
+    });
 
-/* VALIDAR */
-window.validar = function(){
-  const cells = document.querySelectorAll(".cell");
-
-  let i=0;
-  let correto=true;
-
-  for(let linha of imagemAtual){
-    for(let bit of linha){
-
-      const ativo = cells[i].classList.contains("active");
-
-      if((bit==="1" && !ativo)||(bit==="0" && ativo)){
-        correto=false;
-      }
-      i++;
-    }
-  }
-
-  if(correto){
-    alert("🎉 Acertou!");
-    score+=10;
-    document.getElementById("score").innerText=score;
-
-    if(faseAtual+1 < desbloqueadas.length){
-      desbloqueadas[faseAtual+1]=true;
-    }
-
-  }else{
-    alert("❌ Tente novamente");
-  }
-}
-
-/* LIMPAR */
-window.limpar = function(){
-  document.querySelectorAll(".cell").forEach(c=>{
-    c.classList.remove("active");
   });
 }
 
-/* VOLTAR */
-window.voltarMapa = function(){
-  document.getElementById("jogoTela").classList.remove("active");
-  document.getElementById("mapaTela").classList.add("active");
-  renderMapa();
+/* VALIDAÇÃO */
+function validar(){
+  const cells = document.querySelectorAll(".cell");
+  let correto = true;
+  let i = 0;
+
+  imagemAtual.forEach(linha=>{
+    [...linha].forEach(bit=>{
+      const ativo = cells[i].classList.contains("active");
+
+      if((bit==="1" && !ativo) || (bit==="0" && ativo)){
+        correto = false;
+      }
+      i++;
+    });
+  });
+
+  if(correto){
+    alert("🎉 Acertou!");
+    score += 10;
+    salvarRanking();
+  } else {
+    alert("❌ Ainda não está correto");
+  }
+
+  document.getElementById("score").textContent = score;
 }
 
-/* START */
-renderMapa();
+/* LIMPAR */
+function limpar(){
+  document.querySelectorAll(".cell").forEach(c => c.classList.remove("active"));
+}
 
-};
+/* RANKING */
+function salvarRanking(){
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+  ranking.push(score);
+  ranking.sort((a,b)=>b-a);
+  ranking = ranking.slice(0,5);
+
+  localStorage.setItem("ranking", JSON.stringify(ranking));
+  mostrarRanking();
+}
+
+function mostrarRanking(){
+  const ul = document.getElementById("ranking");
+  ul.innerHTML = "";
+
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+
+  ranking.forEach(p=>{
+    const li = document.createElement("li");
+    li.textContent = p + " pontos";
+    ul.appendChild(li);
+  });
+}
+
+/* UPLOAD IMAGEM → BINÁRIO */
+function uploadImagem(event){
+  const file = event.target.files[0];
+  const img = new Image();
+
+  img.onload = ()=>{
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 20;
+    canvas.height = 20;
+
+    ctx.drawImage(img, 0, 0, 20, 20);
+
+    const data = ctx.getImageData(0,0,20,20).data;
+
+    let nova = [];
+
+    for(let y=0;y<20;y++){
+      let linha="";
+      for(let x=0;x<20;x++){
+        const i = (y*20+x)*4;
+        const brilho = data[i] + data[i+1] + data[i+2];
+
+        linha += brilho > 382 ? "0" : "1";
+      }
+      nova.push(linha);
+    }
+
+    imagemAtual = nova;
+    render();
+  };
+
+  img.src = URL.createObjectURL(file);
+}
+
+/* INICIAR */
+carregarFase();
+mostrarRanking();
+
 </script>
 
 </body>
